@@ -46,10 +46,12 @@ import canmatrix.copy
 import canmatrix.types
 import canmatrix.utils
 
-if attr.__version__ < '17.4.0':  # type: ignore
+if attr.__version__ < "17.4.0":  # type: ignore
     raise RuntimeError("need attrs >= 17.4.0")
 logger = logging.getLogger(__name__)
-defaultFloatFactory = decimal.Decimal  # type: typing.Callable[[typing.Any], canmatrix.types.PhysicalValue]
+defaultFloatFactory = (
+    decimal.Decimal
+)  # type: typing.Callable[[typing.Any], canmatrix.types.PhysicalValue]
 
 
 class ExceptionTemplate(Exception):
@@ -57,20 +59,51 @@ class ExceptionTemplate(Exception):
         return self.__class__(*(self.args + args))
 
 
-class StartbitLowerZero(ExceptionTemplate): pass
-class EncodingComplexMultiplexed(ExceptionTemplate): pass
-class MissingMuxSignal(ExceptionTemplate): pass
-class DecodingComplexMultiplexed(ExceptionTemplate): pass
-class DecodingFrameLength(ExceptionTemplate): pass
-class ArbitrationIdOutOfRange(ExceptionTemplate): pass
-class J1939needsExtendedIdetifier(ExceptionTemplate): pass
-class DecodingConatainerPdu(ExceptionTemplate): pass
-class EncodingConatainerPdu(ExceptionTemplate): pass
+class StartbitLowerZero(ExceptionTemplate):
+    pass
 
 
-def arbitration_id_converter(source):  # type: (typing.Union[int, ArbitrationId]) -> ArbitrationId
+class EncodingComplexMultiplexed(ExceptionTemplate):
+    pass
+
+
+class MissingMuxSignal(ExceptionTemplate):
+    pass
+
+
+class DecodingComplexMultiplexed(ExceptionTemplate):
+    pass
+
+
+class DecodingFrameLength(ExceptionTemplate):
+    pass
+
+
+class ArbitrationIdOutOfRange(ExceptionTemplate):
+    pass
+
+
+class J1939needsExtendedIdetifier(ExceptionTemplate):
+    pass
+
+
+class DecodingConatainerPdu(ExceptionTemplate):
+    pass
+
+
+class EncodingConatainerPdu(ExceptionTemplate):
+    pass
+
+
+def arbitration_id_converter(
+    source,
+):  # type: (typing.Union[int, ArbitrationId]) -> ArbitrationId
     """Converter for attrs which accepts ArbitrationId itself or int."""
-    return source if isinstance(source, ArbitrationId) else  ArbitrationId.from_compound_integer(source)
+    return (
+        source
+        if isinstance(source, ArbitrationId)
+        else ArbitrationId.from_compound_integer(source)
+    )
 
 
 @attr.s
@@ -81,9 +114,13 @@ class Ecu(object):
 
     name = attr.ib()  # type: str
     comment = attr.ib(default=None)  # type: typing.Optional[str]
-    attributes = attr.ib(factory=dict, repr=False)  # type: typing.MutableMapping[str, typing.Any]
+    attributes = attr.ib(
+        factory=dict, repr=False
+    )  # type: typing.MutableMapping[str, typing.Any]
 
-    def attribute(self, attribute_name, db=None, default=None):  # type: (str, CanMatrix, typing.Any) -> typing.Any
+    def attribute(
+        self, attribute_name, db=None, default=None
+    ):  # type: (str, CanMatrix, typing.Any) -> typing.Any
         """Get Board unit attribute by its name.
 
         :param str attribute_name: attribute name.
@@ -99,7 +136,9 @@ class Ecu(object):
                 return define.defaultValue
         return default
 
-    def add_attribute(self, attribute, value):  # type (attribute: str, value: typing.Any) -> None
+    def add_attribute(
+        self, attribute, value
+    ):  # type (attribute: str, value: typing.Any) -> None
         """
         Add the Attribute to current ECU. If the attribute already exists, update the value.
 
@@ -126,7 +165,9 @@ class Ecu(object):
         self.comment = comment
 
 
-def normalize_value_table(table):  # type: (typing.Mapping) -> typing.MutableMapping[int, typing.Any]
+def normalize_value_table(
+    table,
+):  # type: (typing.Mapping) -> typing.MutableMapping[int, typing.Any]
     return {int(k): v for k, v in table.items()}
 
 
@@ -150,13 +191,19 @@ class Signal(object):
 
     name = attr.ib(default="")  # type: str
     # float_factory = attr.ib(default=defaultFloatFactory)
-    float_factory = defaultFloatFactory  # type: typing.Callable[[typing.Any], canmatrix.types.PhysicalValue]
+    float_factory = (
+        defaultFloatFactory
+    )  # type: typing.Callable[[typing.Any], canmatrix.types.PhysicalValue]
     start_bit = attr.ib(default=0)  # type: int
     size = attr.ib(default=0)  # type: int
     is_little_endian = attr.ib(default=True)  # type: bool
     is_signed = attr.ib(default=True)  # type: bool
-    offset = attr.ib(converter=float_factory, default=float_factory(0.0))  # type: canmatrix.types.PhysicalValue
-    factor = attr.ib(converter=float_factory, default=float_factory(1.0))  # type: canmatrix.types.PhysicalValue
+    offset = attr.ib(
+        converter=float_factory, default=float_factory(0.0)
+    )  # type: canmatrix.types.PhysicalValue
+    factor = attr.ib(
+        converter=float_factory, default=float_factory(1.0)
+    )  # type: canmatrix.types.PhysicalValue
 
     unit = attr.ib(default="")  # type: str
     receivers = attr.ib(factory=list)  # type: typing.MutableSequence[str]
@@ -170,7 +217,9 @@ class Signal(object):
     enumeration = attr.ib(default=None)  # type: typing.Optional[str]
     comments = attr.ib(factory=dict)  # type: typing.MutableMapping[int, str]
     attributes = attr.ib(factory=dict)  # type: typing.MutableMapping[str, typing.Any]
-    values = attr.ib(converter=normalize_value_table, factory=dict)  # type: typing.MutableMapping[int, str]
+    values = attr.ib(
+        converter=normalize_value_table, factory=dict
+    )  # type: typing.MutableMapping[int, str]
     mux_val_grp = attr.ib(factory=list)  # type: typing.MutableSequence[list]
     muxer_for_signal = attr.ib(default=None)  # type: typing.Optional[str]
 
@@ -179,33 +228,32 @@ class Signal(object):
     calc_max_for_none = attr.ib(default=True)  # type: bool
 
     cycle_time = attr.ib(default=0)  # type: int
-    initial_value = attr.ib(converter=float_factory, default=float_factory(0.0))  # type: canmatrix.types.PhysicalValue
+    initial_value = attr.ib(
+        converter=float_factory, default=float_factory(0.0)
+    )  # type: canmatrix.types.PhysicalValue
 
     min = attr.ib(
         converter=lambda value, float_factory=float_factory: (
-            float_factory(value)
-            if value is not None
-            else value
+            float_factory(value) if value is not None else value
         )
     )  # type: typing.Union[int, decimal.Decimal, None]
+
     @min.default
     def set_default_min(self):  # type: () -> canmatrix.types.OptionalPhysicalValue
         return self.set_min()
 
     max = attr.ib(
         converter=lambda value, float_factory=float_factory: (
-            float_factory(value)
-            if value is not None
-            else value
+            float_factory(value) if value is not None else value
         )
     )  # type: canmatrix.types.OptionalPhysicalValue
+
     @max.default
     def set_default_max(self):
         return self.set_max()
 
     def __attrs_post_init__(self):
         self.multiplex = self.multiplex_setter(self.multiplex)
-
 
     @property
     def spn(self):  # type: () -> typing.Optional[int]
@@ -218,10 +266,10 @@ class Signal(object):
         self.mux_val = None
         self.is_multiplexer = False
         ret_multiplex = None
-        if value is not None and value != 'Multiplexor':
+        if value is not None and value != "Multiplexor":
             ret_multiplex = int(value)
             self.mux_val = int(value)
-        elif value == 'Multiplexor':
+        elif value == "Multiplexor":
             self.is_multiplexer = True
             ret_multiplex = value
         return ret_multiplex
@@ -350,7 +398,9 @@ class Signal(object):
             startBitInternal = startBitInternal + self.size - 1
         # bit numbering not consistent with byte order. reverse
         if bit_numbering is not None and bit_numbering != self.is_little_endian:
-            startBitInternal = startBitInternal - (startBitInternal % 8) + 7 - (startBitInternal % 8)
+            startBitInternal = (
+                startBitInternal - (startBitInternal % 8) + 7 - (startBitInternal % 8)
+            )
         return int(startBitInternal)
 
     def calculate_raw_range(self):
@@ -359,14 +409,14 @@ class Signal(object):
         :return: Signal range, i.e. (0, 15) for unsigned 4 bit Signal or (-8, 7) for signed one.
         :rtype: tuple
         """
-        factory = (
-            self.float_factory
-            if self.is_float
-            else int
-        )
+        factory = self.float_factory if self.is_float else int
         size_to_calc = self.size if self.size <= 128 else 128
         if size_to_calc != self.size:
-            logger.info("max calculation for {} not possible using 128 as base for max value".format(self.size))
+            logger.info(
+                "max calculation for {} not possible using 128 as base for max value".format(
+                    self.size
+                )
+            )
         rawRange = 2 ** (size_to_calc - (1 if self.is_signed else 0))
 
         return (
@@ -431,15 +481,18 @@ class Signal(object):
                     break
             else:
                 raise ValueError(
-                        "{} is invalid value choice for {}".format(value, self)
+                    "{} is invalid value choice for {}".format(value, self)
                 )
 
         if not (self.min <= value <= self.max):
             logger.info(
                 "Value {} is not valid for {}. Min={} and Max={}".format(
-                    value, self, self.min, self.max)
+                    value, self, self.min, self.max
                 )
-        raw_value = (value - self.float_factory(self.offset)) / self.float_factory(self.factor)
+            )
+        raw_value = (value - self.float_factory(self.offset)) / self.float_factory(
+            self.factor
+        )
 
         if not self.is_float:
             raw_value = int(round(raw_value))
@@ -455,7 +508,9 @@ class Signal(object):
         """
         if self.is_float:
             value = self.float_factory(value)
-        result = value * self.factor + self.offset  # type: typing.Union[canmatrix.types.PhysicalValue, str]
+        result = (
+            value * self.factor + self.offset
+        )  # type: typing.Union[canmatrix.types.PhysicalValue, str]
         if decode_to_str:
             for value_key, value_string in self.values.items():
                 if value_key == result:
@@ -472,6 +527,7 @@ class SignalGroup(object):
     """
     Represents signal-group, containing multiple Signals.
     """
+
     name = attr.ib()  # type: str
     id = attr.ib()  # type: int
     signals = attr.ib(factory=list, repr=False)  # type: typing.MutableSequence[Signal]
@@ -527,6 +583,7 @@ class DecodedSignal(object):
     * namedValue: value of Valuetable
     * signal: pointer signal (object) which was decoded
     """
+
     raw_value = attr.ib()  # type: canmatrix.types.RawValue
     signal = attr.ib()  # type: Signal
 
@@ -567,18 +624,17 @@ def unpack_bitstring(length, is_float, is_signed, bits):
     """
 
     if is_float:
-        types = {
-            32: '>f',
-            64: '>d'
-        }
+        types = {32: ">f", 64: ">d"}
 
         float_type = types[length]
-        value, = struct.unpack(float_type, bytearray(int(''.join(b), 2)  for b in grouper(bits, 8)))
+        (value,) = struct.unpack(
+            float_type, bytearray(int("".join(b), 2) for b in grouper(bits, 8))
+        )
     else:
         value = int(bits, 2)
 
-        if is_signed and bits[0] == '1':
-            value -= (1 << len(bits))
+        if is_signed and bits[0] == "1":
+            value -= 1 << len(bits)
 
     return value
 
@@ -593,16 +649,13 @@ def pack_bitstring(length, is_float, value, signed):
     :return:
     """
     if is_float:
-        types = {
-            32: '>f',
-            64: '>d'
-        }
+        types = {32: ">f", 64: ">d"}
 
         float_type = types[length]
         x = bytearray(struct.pack(float_type, value))
-        bitstring = ''.join('{:08b}'.format(b) for b in x)
+        bitstring = "".join("{:08b}".format(b) for b in x)
     else:
-        b = '{:0{}b}'.format(int((2 << length) + value), length)
+        b = "{:0{}b}".format(int((2 << length) + value), length)
         bitstring = b[-length:]
 
     return bitstring
@@ -610,9 +663,9 @@ def pack_bitstring(length, is_float, value, signed):
 
 @attr.s
 class ArbitrationId(object):
-    standard_id_mask = ((1 << 11) - 1)
-    extended_id_mask = ((1 << 29) - 1)
-    compound_extended_mask = (1 << 31)
+    standard_id_mask = (1 << 11) - 1
+    extended_id_mask = (1 << 29) - 1
+    compound_extended_mask = 1 << 31
 
     id = attr.ib(default=None)
     extended = attr.ib(default=False)  # type: bool
@@ -624,7 +677,7 @@ class ArbitrationId(object):
             warnings.warn(
                 "Please set 'extended' attribute as a boolean instead of "
                 "None when creating an instance of ArbitrationId class",
-                DeprecationWarning
+                DeprecationWarning,
             )
         if self.extended:
             mask = self.extended_id_mask
@@ -632,7 +685,7 @@ class ArbitrationId(object):
             mask = self.standard_id_mask
 
         if self.id != self.id & mask:
-            raise ArbitrationIdOutOfRange('ID out of range')
+            raise ArbitrationIdOutOfRange("ID out of range")
 
     @property
     def j1939_pgn(self):
@@ -659,10 +712,8 @@ class ArbitrationId(object):
     def pgn(self, value):  # type: (int) -> None
         self.extended = True
         _pgn = value & 0x3FFFF
-        self.id &= 0xfc0000ff
-        self.id |= (_pgn << 8 & 0x3FFFF00)  # default pgn is None -> mypy reports error
-
-
+        self.id &= 0xFC0000FF
+        self.id |= _pgn << 8 & 0x3FFFF00  # default pgn is None -> mypy reports error
 
     @property
     def j1939_tuple(self):  # type: () -> typing.Tuple[int, int, int]
@@ -691,7 +742,7 @@ class ArbitrationId(object):
     @j1939_source.setter
     def j1939_source(self, value):  # type: (int) -> None
         self.extended = True
-        self.id = (self.id & 0xffffff00) | (value & 0xff)
+        self.id = (self.id & 0xFFFFFF00) | (value & 0xFF)
 
     @property
     def j1939_ps(self):
@@ -730,13 +781,13 @@ class ArbitrationId(object):
     @j1939_priority.setter
     def j1939_priority(self, value):  # type: (int) -> None
         self.extended = True
-        self.id = (self.id & 0x3ffffff) | ((value & 0x7) << 26)
+        self.id = (self.id & 0x3FFFFFF) | ((value & 0x7) << 26)
 
     @property
     def j1939_str(self):  # type: () -> str
         return "DA:0x{da:02X} PGN:0x{pgn:04X} SA:0x{sa:02X}".format(
-            da=self.j1939_destination, pgn=self.pgn, sa=self.j1939_source)
-
+            da=self.j1939_destination, pgn=self.pgn, sa=self.j1939_source
+        )
 
     @classmethod
     def from_compound_integer(cls, i):  # type: (typing.Any) -> ArbitrationId
@@ -747,9 +798,7 @@ class ArbitrationId(object):
 
     @classmethod
     def from_pgn(cls, pgn):  # type: (int) -> ArbitrationId
-        return cls(
-            id = (pgn << 8), extended = True
-        )
+        return cls(id=(pgn << 8), extended=True)
 
     def to_compound_integer(self):
         if self.extended:
@@ -758,13 +807,10 @@ class ArbitrationId(object):
             return self.id
 
     def __eq__(self, other):
-        return (
-            self.id == other.id
-            and (
-                self.extended is None
-                or other.extended is None
-                or self.extended == other.extended
-            )
+        return self.id == other.id and (
+            self.extended is None
+            or other.extended is None
+            or self.extended == other.extended
         )
 
 
@@ -799,6 +845,7 @@ class Pdu(object):
         """
         self.signals.append(signal)
         return self.signals[len(self.signals) - 1]
+
     def add_signal_group(self, Name, Id, signalNames, e2e_trans=None):
         # type: (str, int, typing.Sequence[str]) -> None
         """Add new SignalGroup to the Frame. Add given signals to the group.
@@ -861,7 +908,9 @@ class Frame(object):
 
     name = attr.ib(default="")  # type: str
     # mypy Unsupported converter:
-    arbitration_id = attr.ib(converter=arbitration_id_converter, default=0)  # type: ArbitrationId
+    arbitration_id = attr.ib(
+        converter=arbitration_id_converter, default=0
+    )  # type: ArbitrationId
     size = attr.ib(default=0)  # type: int
     transmitters = attr.ib(factory=list)  # type: typing.MutableSequence[str]
     # extended = attr.ib(default=False)  # type: bool
@@ -881,7 +930,7 @@ class Frame(object):
     # ('sendType', '_sendType', str, None),
 
     pdus = attr.ib(factory=list)  # type: typing.MutableSequence[Pdu]
-    header_id = attr.ib(default=None)  #type: int
+    header_id = attr.ib(default=None)  # type: int
     # header_id
     pdu_name = attr.ib(default="")  # type: str
 
@@ -905,9 +954,7 @@ class Frame(object):
     def get_multiplexer_values(self):  # type: () -> typing.Sequence[int]
         """get possible multiplexer values."""
         multiplexer_values = {
-            sig.mux_val
-            for sig in self.signals
-            if sig.mux_val is not None
+            sig.mux_val for sig in self.signals if sig.mux_val is not None
         }
         return list(multiplexer_values)
 
@@ -920,7 +967,9 @@ class Frame(object):
         """
         muxed_signals = []
         for sig in self.signals:
-            if (sig.mux_val is None and not sig.is_multiplexer) or sig.mux_val == mux_value:
+            if (
+                sig.mux_val is None and not sig.is_multiplexer
+            ) or sig.mux_val == mux_value:
                 muxed_signals.append(sig)
         return muxed_signals
 
@@ -953,7 +1002,7 @@ class Frame(object):
     @property
     def source(self):  # type: () -> int
         """Get J1939 source."""
-        return  self.arbitration_id.j1939_source
+        return self.arbitration_id.j1939_source
 
     @source.setter
     def source(self, value):  # type: (int) -> None
@@ -963,13 +1012,19 @@ class Frame(object):
     @property
     def effective_cycle_time(self):
         """Calculate effective cycle time for frame, depending on singal cycle times"""
-        min_cycle_time_list = [y for y in [x.cycle_time for x in self.signals] + [self.cycle_time] if y != 0]
+        min_cycle_time_list = [
+            y
+            for y in [x.cycle_time for x in self.signals] + [self.cycle_time]
+            if y != 0
+        ]
         if len(min_cycle_time_list) == 0:
             return 0
         elif len(min_cycle_time_list) == 1:
             return min_cycle_time_list[0]
         else:
-            gcd = canmatrix.utils.get_gcd(min_cycle_time_list[0], min_cycle_time_list[1])
+            gcd = canmatrix.utils.get_gcd(
+                min_cycle_time_list[0], min_cycle_time_list[1]
+            )
             for i in range(2, len(min_cycle_time_list)):
                 gcd = canmatrix.utils.get_gcd(gcd, min_cycle_time_list[i])
             return gcd
@@ -1194,7 +1249,7 @@ class Frame(object):
 
     def fit_dlc(self):
         """
-            Compute next allowed DLC (length) for current Frame
+        Compute next allowed DLC (length) for current Frame
         """
         max_byte = self.size
         last_size = 8
@@ -1217,8 +1272,12 @@ class Frame(object):
         :return: list of lists with signalnames
         :rtype: list of lists
         """
-        little_bits = [[] for _dummy in range((self.size * 8))]  # type: typing.List[typing.List]
-        big_bits = [[] for _dummy in range((self.size * 8))]  # type: typing.List[typing.List]
+        little_bits = [
+            [] for _dummy in range((self.size * 8))
+        ]  # type: typing.List[typing.List]
+        big_bits = [
+            [] for _dummy in range((self.size * 8))
+        ]  # type: typing.List[typing.List]
         for signal in self.signals:
             if signal.is_little_endian:
                 least = len(little_bits) - signal.start_bit
@@ -1235,10 +1294,7 @@ class Frame(object):
         little_bits_iter = reversed(tuple(grouper(little_bits, 8)))
         little_bits = list(itertools.chain(*little_bits_iter))
 
-        return_list = [
-            little + big
-            for little, big in zip(little_bits, big_bits)
-        ]
+        return_list = [little + big for little, big in zip(little_bits, big_bits)]
 
         return return_list
 
@@ -1253,10 +1309,17 @@ class Frame(object):
         for index, bit_signals in enumerate(bitfield):
             if bit_signals == [] and startBit == -1:
                 startBit = index
-            if (index == (len(bitfield)-1) or bit_signals != []) and startBit != -1:
-                if index == (len(bitfield)-1):
+            if (index == (len(bitfield) - 1) or bit_signals != []) and startBit != -1:
+                if index == (len(bitfield) - 1):
                     index = len(bitfield)
-                self.add_signal(Signal("_Dummy_%s_%d" % (self.name, sigCount), size=index - startBit, start_bit=startBit, is_little_endian = False))
+                self.add_signal(
+                    Signal(
+                        "_Dummy_%s_%d" % (self.name, sigCount),
+                        size=index - startBit,
+                        start_bit=startBit,
+                        is_little_endian=False,
+                    )
+                )
                 startBit = -1
                 sigCount += 1
 
@@ -1277,12 +1340,16 @@ class Frame(object):
         :return: A byte string of the packed values.
         """
 
-        little_bits = [None] * (self.size * 8)  # type: typing.List[typing.Optional[str]]
+        little_bits = [None] * (
+            self.size * 8
+        )  # type: typing.List[typing.Optional[str]]
         big_bits = list(little_bits)
         for signal in self.signals:
             if signal.name in data:
                 value = data.get(signal.name)
-                bits = pack_bitstring(signal.size, signal.is_float, value, signal.is_signed)
+                bits = pack_bitstring(
+                    signal.size, signal.is_float, value, signal.is_signed
+                )
 
                 if signal.is_little_endian:
                     least = self.size * 8 - signal.start_bit
@@ -1296,15 +1363,12 @@ class Frame(object):
                     big_bits[most:least] = bits
         little_bits_iter = reversed(tuple(grouper(little_bits, 8)))
         little_bits = list(itertools.chain(*little_bits_iter))
-        bitstring = ''.join(
-            next(x for x in (l, b, '0') if x is not None)
+        bitstring = "".join(
+            next(x for x in (l, b, "0") if x is not None)
             # l if l != ' ' else (b if b != ' ' else '0')
             for l, b in zip(little_bits, big_bits)
         )
-        return bytearray(
-            int(''.join(b), 2)
-            for b in grouper(bitstring, 8)
-        )
+        return bytearray(int("".join(b), 2) for b in grouper(bitstring, 8))
 
     def encode(self, data=None):
         # type: (typing.Optional[typing.Mapping[str, typing.Any]]) -> bytes
@@ -1318,6 +1382,60 @@ class Frame(object):
         data = dict() if data is None else data
 
         if self.is_complex_multiplexed:
+            # convert "data" dictionary to a list of dictionary keys
+            myData = list(data.keys())
+            for i in myData:
+                for signal in self.signals:
+                    if i == signal.name and not signal.multiplex == "Multiplexor":
+                        signal_of_interest = signal
+                        page = signal.multiplex
+                        mux = signal.muxer_for_signal
+                    else:
+                        signal_of_interest = None
+                        page = 0
+                        mux = 0
+            # search for complex mulitplexer-signal
+            for signal in self.signals:
+                if signal.multiplex == "Multiplexor" and signal.values:
+                    compMuxSignal = signal
+                    break
+                else:
+                    compMuxSignal = None
+            else:
+                raise MissingComplexMuxSignal
+            # get complex mux value for signal
+            for signal in self.signals:
+                if signal.name == mux:
+                    comp_mux_val = signal.mux_val_grp[0][0]
+                else:
+                    comp_mux_val = 0
+            # get multiplexor:
+            for signal in self.signals:
+                if (
+                    signal.multiplex == "Multiplexor"
+                    and signal.mux_val_grp
+                    and signal.mux_val_grp[0][0] == comp_mux_val
+                ):
+                    muxer_for_sig = signal
+
+            keep_list = []
+            muxer_for_sig_val = data[str(muxer_for_sig)]
+            # create list of signals that belong to mux group
+            for signal in self.signals:
+                if (
+                    str(signal.muxer_for_signal) == str(muxer_for_sig)
+                    and signal.multiplex == muxer_for_sig_val
+                    or str(signal) == str(muxer_for_sig)
+                    or str(signal) == str(compMuxSignal)
+                ):
+                    keep_list.append(str(signal))
+            newData = dict()
+            # kick out signals, which do not belong to this mux-id
+            for signalName in data:
+                if signalName in keep_list:
+                    newData[signalName] = data[signalName]
+
+            data = newData
             raise EncodingComplexMultiplexed
         elif self.is_pdu_container:
             raise EncodingConatainerPdu  # TODO add encoding
@@ -1352,9 +1470,9 @@ class Frame(object):
             i.e. bytearray([0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8])
         :return: bit arrays in big and little byteorder
         """
-        b = tuple('{:08b}'.format(b) for b in data)
-        little = ''.join(reversed(b))
-        big = ''.join(b)
+        b = tuple("{:08b}".format(b) for b in data)
+        little = "".join(reversed(b))
+        big = "".join(b)
 
         return little, big
 
@@ -1381,7 +1499,9 @@ class Frame(object):
                 least = most + signal.size
 
                 bits = big[most:least]
-            unpacked.append(unpack_bitstring(signal.size, signal.is_float, signal.is_signed, bits))
+            unpacked.append(
+                unpack_bitstring(signal.size, signal.is_float, signal.is_signed, bits)
+            )
 
         return unpacked
 
@@ -1399,16 +1519,16 @@ class Frame(object):
         rx_length = len(data)
         if rx_length != self.size and report_error:
             raise DecodingFrameLength(
-                'Received message 0x{self.arbitration_id.id:08X} '
-                'with length {rx_length}, expected {self.size}'.format(**locals())
+                "Received message 0x{self.arbitration_id.id:08X} "
+                "with length {rx_length}, expected {self.size}".format(**locals())
             )
         elif self.is_pdu_container:
             header_id_signal = self.signal_by_name("Header_ID")
             header_dlc_signal = self.signal_by_name("Header_DLC")
             if header_id_signal is None or header_dlc_signal is None:
                 raise DecodingConatainerPdu(
-                    'Received message 0x{:08X} without Header_ID or '
-                    'Header_DLC signal'.format(self.arbitration_id.id)
+                    "Received message 0x{:08X} without Header_ID or "
+                    "Header_DLC signal".format(self.arbitration_id.id)
                 )
             # TODO: may be we need to check that ID/DLC signals are contiguous
             header_size = header_id_signal.size + header_dlc_signal.size
@@ -1416,7 +1536,11 @@ class Frame(object):
             size = self.size * 8
             return_dict = dict({"pdus": []})
             # decode signal which are not in PDUs
-            signals = [s for s in self.signals if s not in [header_id_signal, header_dlc_signal]]
+            signals = [
+                s
+                for s in self.signals
+                if s not in [header_id_signal, header_dlc_signal]
+            ]
             if signals:
                 unpacked = self.bitstring_to_signal_list(signals, big, little, size)
                 for s, v in zip(signals, unpacked):
@@ -1427,9 +1551,9 @@ class Frame(object):
             while (offset + header_size) < size:
                 unpacked = self.bitstring_to_signal_list(
                     header_signals,
-                    big[offset:offset + header_size],
-                    little[size - offset - header_size:size - offset],
-                    header_size
+                    big[offset : offset + header_size],
+                    little[size - offset - header_size : size - offset],
+                    header_size,
                 )
                 offset += header_size
                 pdu_id = unpacked[0]
@@ -1440,24 +1564,26 @@ class Frame(object):
                     return_dict[s.name].append(DecodedSignal(v, s))
                 pdu = self.pdu_by_id(pdu_id)
                 if pdu is None:
-                    return_dict['pdus'].append(None)
+                    return_dict["pdus"].append(None)
                 else:
                     unpacked = self.bitstring_to_signal_list(
                         pdu.signals,
-                        big[offset:offset + pdu_dlc * 8],
-                        little[size - offset - pdu_dlc * 8:size - offset],
-                        pdu_dlc * 8
+                        big[offset : offset + pdu_dlc * 8],
+                        little[size - offset - pdu_dlc * 8 : size - offset],
+                        pdu_dlc * 8,
                     )
                     pdu_dict = dict()
                     for s, v in zip(pdu.signals, unpacked):
                         pdu_dict[s.name] = DecodedSignal(v, s)
                     return_dict["pdus"].append({pdu.name: pdu_dict})
-                offset += (pdu_dlc * 8)
+                offset += pdu_dlc * 8
             return return_dict
         else:
             little, big = self.bytes_to_bitstrings(data)
 
-            unpacked = self.bitstring_to_signal_list(self.signals, big, little, self.size * 8)
+            unpacked = self.bitstring_to_signal_list(
+                self.signals, big, little, self.size * 8
+            )
 
             return_dict = dict()
 
@@ -1476,7 +1602,11 @@ class Frame(object):
         :return: muxer signal or None
         """
         for signal in self.signals:
-            if signal.is_multiplexer and signal.muxer_for_signal == parent_multiplexer_name and signal.multiplexer_value_in_range(parent_multiplexer_value):
+            if (
+                signal.is_multiplexer
+                and signal.muxer_for_signal == parent_multiplexer_name
+                and signal.multiplexer_value_in_range(parent_multiplexer_value)
+            ):
                 return signal
 
     def _filter_signals_for_multiplexer(self, multiplexer_name, multiplexer_value):
@@ -1491,7 +1621,11 @@ class Frame(object):
         """
         filtered_signals = []
         for signal in self.signals:
-            if signal.multiplexer_value_in_range(multiplexer_value) and signal.muxer_for_signal == multiplexer_name and not signal.is_multiplexer:
+            if (
+                signal.multiplexer_value_in_range(multiplexer_value)
+                and signal.muxer_for_signal == multiplexer_name
+                and not signal.is_multiplexer
+            ):
                 filtered_signals.append(signal)
             elif signal.name == multiplexer_name:
                 filtered_signals.append(signal)
@@ -1518,11 +1652,17 @@ class Frame(object):
             sub_multiplexer = self._get_sub_multiplexer(multiplex_name, multiplex_value)
             while sub_multiplexer is not None:
                 multiplex_name = sub_multiplexer.name
-                multiplex_signal = decoded_values[multiplex_name] = decoded[multiplex_name]
+                multiplex_signal = decoded_values[multiplex_name] = decoded[
+                    multiplex_name
+                ]
                 multiplex_value = multiplex_signal.raw_value
-                filtered_signals += self._filter_signals_for_multiplexer(multiplex_name, multiplex_value)
+                filtered_signals += self._filter_signals_for_multiplexer(
+                    multiplex_name, multiplex_value
+                )
 
-                sub_multiplexer = self._get_sub_multiplexer(multiplex_name, multiplex_value)
+                sub_multiplexer = self._get_sub_multiplexer(
+                    multiplex_name, multiplex_value
+                )
 
             for signal in filtered_signals:
                 decoded_values[signal.name] = decoded[signal.name]
@@ -1573,38 +1713,44 @@ class Define(object):
             """
             out = int(defaultFloatFactory(inStr))
             if out != defaultFloatFactory(inStr):
-                logger.warning("Warning, integer was expected but got float: got: {0} using {1}\n".format(inStr, str(out)))
+                logger.warning(
+                    "Warning, integer was expected but got float: got: {0} using {1}\n".format(
+                        inStr, str(out)
+                    )
+                )
             return out
 
         # for any known type:
-        if definition[0:3] == 'INT':
-            self.type = 'INT'
-            min, max = definition[4:].split(' ', 2)
+        if definition[0:3] == "INT":
+            self.type = "INT"
+            min, max = definition[4:].split(" ", 2)
             self.min = safe_convert_str_to_int(min)
             self.max = safe_convert_str_to_int(max)
 
-        elif definition[0:6] == 'STRING':
-            self.type = 'STRING'
+        elif definition[0:6] == "STRING":
+            self.type = "STRING"
             self.min = None
             self.max = None
 
-        elif definition[0:4] == 'ENUM':
-            self.type = 'ENUM'
+        elif definition[0:4] == "ENUM":
+            self.type = "ENUM"
             tempValues = canmatrix.utils.quote_aware_comma_split(definition[5:])
             self.values = []  # type: typing.List[str]
             for value in tempValues:
                 value = value.replace("vector_leerstring", "")
                 self.values.append(value)
 
-        elif definition[0:3] == 'HEX':  # differently rendered in DBC editor, but values are saved like for an INT
-            self.type = 'HEX'
-            min, max = definition[4:].split(' ', 2)
+        elif (
+            definition[0:3] == "HEX"
+        ):  # differently rendered in DBC editor, but values are saved like for an INT
+            self.type = "HEX"
+            min, max = definition[4:].split(" ", 2)
             self.min = safe_convert_str_to_int(min)
             self.max = safe_convert_str_to_int(max)
 
-        elif definition[0:5] == 'FLOAT':
-            self.type = 'FLOAT'
-            min, max = definition[6:].split(' ', 2)
+        elif definition[0:5] == "FLOAT":
+            self.type = "FLOAT"
+            min, max = definition[6:].split(" ", 2)
             self.min = defaultFloatFactory(min)
             self.max = defaultFloatFactory(max)
 
@@ -1613,7 +1759,12 @@ class Define(object):
 
         :param default: default value; number, str or quoted str ("value")
         """
-        if default is not None and len(default) > 1 and default[0] == '"' and default[-1] == '"':
+        if (
+            default is not None
+            and len(default) > 1
+            and default[0] == '"'
+            and default[-1] == '"'
+        ):
             default = default[1:-1]
         self.defaultValue = default
 
@@ -1622,9 +1773,10 @@ class Define(object):
 
         For type ENUM rebuild the definition string from current values. Otherwise do nothing.
         """
-        if self.type != 'ENUM':
+        if self.type != "ENUM":
             return
-        self.definition = 'ENUM "' + '","' .join(self.values) +'"'
+        self.definition = 'ENUM "' + '","'.join(self.values) + '"'
+
 
 import enum
 
@@ -1633,6 +1785,7 @@ class matrix_class(enum.Enum):
     CAN = 1
     FLEXRAY = 2
     SOMEIP = 3
+
 
 @attr.s(eq=False)
 class CanMatrix(object):
@@ -1648,7 +1801,7 @@ class CanMatrix(object):
     value_tables (global defined values)
     """
 
-    type = attr.ib(default=matrix_class.CAN)  #type: matrix_class
+    type = attr.ib(default=matrix_class.CAN)  # type: matrix_class
     attributes = attr.ib(factory=dict)  # type: typing.MutableMapping[str, typing.Any]
     ecus = attr.ib(factory=list)  # type: typing.MutableSequence[Ecu]
     frames = attr.ib(factory=list)  # type: typing.MutableSequence[Frame]
@@ -1658,8 +1811,12 @@ class CanMatrix(object):
     global_defines = attr.ib(factory=dict)  # type: typing.MutableMapping[str, Define]
     env_defines = attr.ib(factory=dict)  # type: typing.MutableMapping[str, Define]
     ecu_defines = attr.ib(factory=dict)  # type: typing.MutableMapping[str, Define]
-    value_tables = attr.ib(factory=dict)  # type: typing.MutableMapping[str, typing.MutableMapping]
-    env_vars = attr.ib(factory=dict)  # type: typing.MutableMapping[str, typing.MutableMapping]
+    value_tables = attr.ib(
+        factory=dict
+    )  # type: typing.MutableMapping[str, typing.MutableMapping]
+    env_vars = attr.ib(
+        factory=dict
+    )  # type: typing.MutableMapping[str, typing.MutableMapping]
     signals = attr.ib(factory=list)  # type: typing.MutableSequence[Signal]
 
     baudrate = attr.ib(default=0)  # type:int
@@ -1671,7 +1828,9 @@ class CanMatrix(object):
         """Matrix iterates over Frames (Messages)."""
         return iter(self.frames)
 
-    def add_env_var(self, name, envVarDict):  # type: (str, typing.MutableMapping) -> None
+    def add_env_var(
+        self, name, envVarDict
+    ):  # type: (str, typing.MutableMapping) -> None
         self.env_vars[name] = envVarDict
 
     def add_env_attribute(self, env_name, attribute_name, attribute_value):
@@ -1696,7 +1855,9 @@ class CanMatrix(object):
                 return True
         return False
 
-    def attribute(self, attributeName, default=None):  # type(str, typing.Any) -> typing.Any
+    def attribute(
+        self, attributeName, default=None
+    ):  # type(str, typing.Any) -> typing.Any
         """Return custom Matrix attribute by name.
 
         :param str attributeName: attribute name
@@ -1706,8 +1867,8 @@ class CanMatrix(object):
         if attributeName in self.attributes:
             return self.attributes[attributeName]
         elif attributeName in self.global_defines:
-                define = self.global_defines[attributeName]
-                return define.defaultValue
+            define = self.global_defines[attributeName]
+            return define.defaultValue
         else:
             return default
 
@@ -1794,11 +1955,12 @@ class CanMatrix(object):
             self.global_defines[name].set_default(value)
 
     def delete_obsolete_ecus(self):  # type: () -> None
-        """Delete all unused ECUs
-        """
+        """Delete all unused ECUs"""
         used_ecus = [ecu for f in self.frames for ecu in f.transmitters]
         used_ecus += [ecu for f in self.frames for ecu in f.receivers]
-        used_ecus += [ecu for f in self.frames for s in f.signals for ecu in s.receivers]
+        used_ecus += [
+            ecu for f in self.frames for s in f.signals for ecu in s.receivers
+        ]
         used_ecus += [ecu for s in self.signals for ecu in s.receivers]
         ecus_to_delete = [ecu.name for ecu in self.ecus if ecu.name not in used_ecus]
         for ecu in ecus_to_delete:
@@ -1839,7 +2001,9 @@ class CanMatrix(object):
         for element in defines_to_delete:
             del self.signal_defines[element]
 
-    def frame_by_id(self, arbitration_id):  # type: (ArbitrationId) -> typing.Union[Frame, None]
+    def frame_by_id(
+        self, arbitration_id
+    ):  # type: (ArbitrationId) -> typing.Union[Frame, None]
         """Get Frame by its arbitration id.
 
         :param ArbitrationId arbitration_id: Frame id as canmatrix.ArbitrationId
@@ -1864,7 +2028,6 @@ class CanMatrix(object):
                 # of just pgn is needed to do the pf >= 240 check
                 return test
         return None
-
 
     def frame_by_name(self, name):  # type: (str) -> typing.Union[Frame, None]
         """Get Frame by name.
@@ -1954,7 +2117,9 @@ class CanMatrix(object):
                 if 0 == signal.size:
                     frame.signals.remove(signal)
 
-    def del_signal_attributes(self, unwanted_attributes):  # type: (typing.Sequence[str]) -> None
+    def del_signal_attributes(
+        self, unwanted_attributes
+    ):  # type: (typing.Sequence[str]) -> None
         """Delete Signal attributes from all Signals of all Frames.
 
         :param list of str unwanted_attributes: List of attributes to remove
@@ -1964,7 +2129,9 @@ class CanMatrix(object):
                 for attrib in unwanted_attributes:
                     signal.del_attribute(attrib)
 
-    def del_frame_attributes(self, unwanted_attributes):  # type: (typing.Sequence[str]) -> None
+    def del_frame_attributes(
+        self, unwanted_attributes
+    ):  # type: (typing.Sequence[str]) -> None
         """Delete Frame attributes from all Frames.
 
         :param list of str unwanted_attributes: List of attributes to remove
@@ -1993,13 +2160,19 @@ class CanMatrix(object):
                         max_byte += pdu.size
                 frame.size = max_byte
 
-    def rename_ecu(self, ecu_or_name, new_name):  # type: (typing.Union[Ecu, str], str) -> None
+    def rename_ecu(
+        self, ecu_or_name, new_name
+    ):  # type: (typing.Union[Ecu, str], str) -> None
         """Rename ECU in the Matrix. Update references in all Frames.
 
         :param str or Ecu ecu_or_name: old name or ECU instance
         :param str new_name: new name
         """
-        ecu = ecu_or_name if isinstance(ecu_or_name, Ecu) else self.ecu_by_name(ecu_or_name)
+        ecu = (
+            ecu_or_name
+            if isinstance(ecu_or_name, Ecu)
+            else self.ecu_by_name(ecu_or_name)
+        )
         if ecu is None:
             return
         old_name = ecu.name
@@ -2029,7 +2202,11 @@ class CanMatrix(object):
 
         :param str or Ecu ecu_or_glob: ECU instance or glob pattern to remove from list
         """
-        ecu_list = [ecu_or_glob] if isinstance(ecu_or_glob, Ecu) else self.glob_ecus(ecu_or_glob)
+        ecu_list = (
+            [ecu_or_glob]
+            if isinstance(ecu_or_glob, Ecu)
+            else self.glob_ecus(ecu_or_glob)
+        )
 
         for ecu in ecu_list:
             if ecu in self.ecus:
@@ -2051,20 +2228,24 @@ class CanMatrix(object):
                 for receive_ecu in signal.receivers:
                     self.add_ecu(Ecu(receive_ecu))
 
-    def rename_frame(self, frame_or_name, new_name):  # type: (typing.Union[Frame,str], str) -> None
+    def rename_frame(
+        self, frame_or_name, new_name
+    ):  # type: (typing.Union[Frame,str], str) -> None
         """Rename Frame.
 
         :param Frame or str frame_or_name: Old Frame instance or name or part of the name with '*' at the beginning or the end.
         :param str new_name: new Frame name, suffix or prefix
         """
-        old_name = frame_or_name.name if isinstance(frame_or_name, Frame) else frame_or_name
+        old_name = (
+            frame_or_name.name if isinstance(frame_or_name, Frame) else frame_or_name
+        )
         for frame in self.frames:
-            if old_name[-1] == '*':
-                old_prefix_len = len(old_name)-1
+            if old_name[-1] == "*":
+                old_prefix_len = len(old_name) - 1
                 if frame.name[:old_prefix_len] == old_name[:-1]:
                     frame.name = new_name + frame.name[old_prefix_len:]
-            if old_name[0] == '*':
-                old_suffix_len = len(old_name)-1
+            if old_name[0] == "*":
+                old_suffix_len = len(old_name) - 1
                 if frame.name[-old_suffix_len:] == old_name[1:]:
                     frame.name = frame.name[:-old_suffix_len] + new_name
             elif frame.name == old_name:
@@ -2074,24 +2255,34 @@ class CanMatrix(object):
         """Delete Frame from Matrix.
 
         :param Frame or str frame_or_name: Frame or name to delete"""
-        frame = frame_or_name if isinstance(frame_or_name, Frame) else self.frame_by_name(frame_or_name)
+        frame = (
+            frame_or_name
+            if isinstance(frame_or_name, Frame)
+            else self.frame_by_name(frame_or_name)
+        )
         if frame:
             self.frames.remove(frame)
 
-    def rename_signal(self, signal_or_name, new_name):  # type: (typing.Union[Signal, str], str) -> None
+    def rename_signal(
+        self, signal_or_name, new_name
+    ):  # type: (typing.Union[Signal, str], str) -> None
         """Rename Signal.
 
         :param Signal or str signal_or_name: Old Signal instance or name or part of the name with '*' at the beginning or the end.
         :param str new_name: new Signal name, suffix or prefix
         """
-        old_name = signal_or_name.name if isinstance(signal_or_name, Signal) else signal_or_name
+        old_name = (
+            signal_or_name.name
+            if isinstance(signal_or_name, Signal)
+            else signal_or_name
+        )
         for frame in self.frames:
-            if old_name[-1] == '*':
+            if old_name[-1] == "*":
                 old_prefix_len = len(old_name) - 1
                 for signal in frame.signals:
                     if signal.name[:old_prefix_len] == old_name[:-1]:
                         signal.name = new_name + signal.name[old_prefix_len:]
-            elif old_name[0] == '*':
+            elif old_name[0] == "*":
                 old_suffix_len = len(old_name) - 1
                 for signal in frame.signals:
                     if signal.name[-old_suffix_len:] == old_name[1:]:
@@ -2115,7 +2306,9 @@ class CanMatrix(object):
                 for sig in signal_list:
                     frame.signals.remove(sig)
 
-    def add_signal_receiver(self, globFrame, globSignal, ecu):  # type: (str, str, str) -> None
+    def add_signal_receiver(
+        self, globFrame, globSignal, ecu
+    ):  # type: (str, str, str) -> None
         """Add Receiver to all Frames and Signals by glob pattern.
 
         :param str globFrame: glob pattern for Frame name.
@@ -2128,7 +2321,9 @@ class CanMatrix(object):
                 signal.add_receiver(ecu)
             frame.update_receiver()
 
-    def del_signal_receiver(self, globFrame, globSignal, ecu):  # type: (str, str, str) -> None
+    def del_signal_receiver(
+        self, globFrame, globSignal, ecu
+    ):  # type: (str, str, str) -> None
         """Delete Receiver from all Frames by glob pattern.
 
         :param str globFrame: glob pattern for Frame name.
@@ -2182,17 +2377,21 @@ class CanMatrix(object):
         """
         for dbTemp in mergeArray:  # type: CanMatrix
             for frame in dbTemp.frames:
-                copyResult = canmatrix.copy.copy_frame(frame.arbitration_id, dbTemp, self)
+                copyResult = canmatrix.copy.copy_frame(
+                    frame.arbitration_id, dbTemp, self
+                )
                 if copyResult is False:
                     logger.error(
-                        "ID Conflict, could not copy/merge frame " + frame.name + "  %xh " % frame.arbitration_id.id + self.frame_by_id(frame.arbitration_id).name
+                        "ID Conflict, could not copy/merge frame "
+                        + frame.name
+                        + "  %xh " % frame.arbitration_id.id
+                        + self.frame_by_id(frame.arbitration_id).name
                     )
             for envVar in dbTemp.env_vars:
                 if envVar not in self.env_vars:
                     self.add_env_var(envVar, dbTemp.env_vars[envVar])
                 else:
-                    logger.error(
-                        "Name Conflict, could not copy/merge EnvVar " + envVar)
+                    logger.error("Name Conflict, could not copy/merge EnvVar " + envVar)
 
     def set_fd_type(self):  # type: () -> None
         """Try to guess and set the CAN type for every frame.
@@ -2204,7 +2403,9 @@ class CanMatrix(object):
             if frame.size > 8:
                 frame.is_fd = True
 
-    def encode(self, frame_id, data):  # type: (ArbitrationId, typing.Mapping[str, typing.Any]) -> bytes
+    def encode(
+        self, frame_id, data
+    ):  # type: (ArbitrationId, typing.Mapping[str, typing.Any]) -> bytes
         """Return a byte string containing the values from data packed
         according to the frame format.
 
@@ -2220,10 +2421,14 @@ class CanMatrix(object):
         :param pycan_msg: python-can message
         :return: OrderedDictionary
         """
-        canmatrix_arbitration_id = canmatrix.ArbitrationId(pycan_msg.arbitration_id, extended=pycan_msg.is_extended_id)
+        canmatrix_arbitration_id = canmatrix.ArbitrationId(
+            pycan_msg.arbitration_id, extended=pycan_msg.is_extended_id
+        )
         return self.decode(canmatrix_arbitration_id, pycan_msg.data)
 
-    def decode(self, frame_id, data):  # type: (ArbitrationId, bytes) -> typing.Mapping[str, typing.Any]
+    def decode(
+        self, frame_id, data
+    ):  # type: (ArbitrationId, bytes) -> typing.Mapping[str, typing.Any]
         """Return OrderedDictionary with Signal Name: object decodedSignal
 
         :param frame_id: frame id
@@ -2249,20 +2454,26 @@ class CanMatrix(object):
             if self.ecu_defines[define].type == "ENUM":
                 for bu in self.ecus:
                     if define in bu.attributes:
-                        bu.attributes[define] = self.ecu_defines[define].values[int(bu.attributes[define])]
+                        bu.attributes[define] = self.ecu_defines[define].values[
+                            int(bu.attributes[define])
+                        ]
 
         for define in self.frame_defines:
             if self.frame_defines[define].type == "ENUM":
                 for frame in self.frames:
                     if define in frame.attributes:
-                        frame.attributes[define] = self.frame_defines[define].values[int(frame.attributes[define])]
+                        frame.attributes[define] = self.frame_defines[define].values[
+                            int(frame.attributes[define])
+                        ]
 
         for define in self.signal_defines:
             if self.signal_defines[define].type == "ENUM":
                 for frame in self.frames:
                     for signal in frame.signals:
                         if define in signal.attributes:
-                            signal.attributes[define] = self.signal_defines[define].values[int(signal.attributes[define])]
+                            signal.attributes[define] = self.signal_defines[
+                                define
+                            ].values[int(signal.attributes[define])]
 
     def enum_attribs_to_keys(self):  # type: () -> None
         for define in self.ecu_defines:
@@ -2270,19 +2481,25 @@ class CanMatrix(object):
                 for bu in self.ecus:
                     if define in bu.attributes:
                         if len(bu.attributes[define]) > 0:
-                            bu.attributes[define] = self.ecu_defines[define].values.index(bu.attributes[define])
+                            bu.attributes[define] = self.ecu_defines[
+                                define
+                            ].values.index(bu.attributes[define])
                             bu.attributes[define] = str(bu.attributes[define])
         for define in self.frame_defines:
             if self.frame_defines[define].type == "ENUM":
                 for frame in self.frames:
                     if define in frame.attributes:
                         if len(frame.attributes[define]) > 0:
-                            frame.attributes[define] = self.frame_defines[define].values.index(frame.attributes[define])
+                            frame.attributes[define] = self.frame_defines[
+                                define
+                            ].values.index(frame.attributes[define])
                             frame.attributes[define] = str(frame.attributes[define])
         for define in self.signal_defines:
             if self.signal_defines[define].type == "ENUM":
                 for frame in self.frames:
                     for signal in frame.signals:
                         if define in signal.attributes:
-                            signal.attributes[define] = self.signal_defines[define].values.index(signal.attributes[define])
+                            signal.attributes[define] = self.signal_defines[
+                                define
+                            ].values.index(signal.attributes[define])
                             signal.attributes[define] = str(signal.attributes[define])
