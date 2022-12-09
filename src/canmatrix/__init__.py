@@ -21,7 +21,7 @@ from canmatrix.canmatrix import (
 
 from canmatrix.canmatrix import (
     StartbitLowerZero,
-    EncodingComplexMultiplexed,
+    MissingComplexMultiplexedSignal,
     MissingMuxSignal,
     DecodingComplexMultiplexed,
     DecodingFrameLength,
