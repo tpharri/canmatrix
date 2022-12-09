@@ -99,7 +99,7 @@ setup(
         "odx": ["lxml"],
         "scapy": [],
         "sym": [],
-        "test": ["pathlib2; python_version < '3.4'", "pytest"],
+        "test": ["pathlib2; python_version < '3.4'", "pytest", "xlrd", "lxml", "xlwt"],
         "wireshark": [],
         "xls": ["xlrd", "xlwt"],
         "xlsx": ["xlsxwriter"],
