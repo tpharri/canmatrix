@@ -1485,7 +1485,7 @@ class Frame(object):
         """
         filtered_signals = []
         for signal in self.signals:
-            if signal.multiplexer_value_in_range(multiplexer_value) and not signal.is_multiplexer:
+            if signal.multiplexer_value_in_range(multiplexer_value) and signal.muxer_for_signal == multiplexer_name and not signal.is_multiplexer:
                 filtered_signals.append(signal)
             elif signal.name == multiplexer_name:
                 filtered_signals.append(signal)
